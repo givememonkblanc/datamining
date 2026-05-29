@@ -1,0 +1,25 @@
+# Data (raw & processed)
+data/
+
+# Textbook PDFs
+textbook/
+
+# Regeneratable outputs
+results/
+*.pkl
+*.csv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Old/superseded charts (keep clustering_final.png only)
+clustering.png
+clustering_v2.png
+eda_v2.png
+eda_plots.png
+faiss_rag_results.png
