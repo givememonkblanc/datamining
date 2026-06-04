@@ -1,6 +1,6 @@
 """
 02. 파생변수 생성
-- 차대번호 10번째 자리 → 생산년도 매핑
+ - VIN 10번째 자리 → 생산년도 매핑
 - 연간/일평균 주행거리
 - 정비이력 이동통계 (이동평균, 이동표준편차)
 - 주행거리/금액 이동통계
@@ -82,7 +82,7 @@ for car_no, grp in df.groupby('carNo', sort=False):
             'log_drivingKm': row['log_drivingKm'],
             'AnnualAvgDrivingKm': row['AnnualAvgDrivingKm'],
             'log_AnnualAvgDrivingKm': row['log_AnnualAvgDrivingKm'],
-            'source_enc': 1 if row['source'] == 'KBEAD' else 0,
+            'source_enc': 1 if row['source'] == 'A' else 0,
             'in_month': row['inDay'].month,
             'in_quarter': row['inDay'].quarter,
             'in_dayofweek': row['inDay'].dayofweek,
