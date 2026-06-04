@@ -15,7 +15,7 @@ df = pd.read_pickle('/tmp/df_final.pkl')
 fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
 
 colors = {0:'#3498db', 1:'#2ecc71', 2:'#e74c3c', 3:'#95a5a6'}
-cluster_names = {0:'저주행 일반', 1:'일반 승용', 2:'영업용/업무용', 3:'장기 미사용'}
+cluster_names = {0:'저주행군', 1:'중간주행군', 2:'고주행군', 3:'초저주행군'}
 
 for c in sorted(df['cluster'].unique()):
     sub = df[df['cluster']==c].sample(min(3000, sum(df['cluster']==c)), random_state=42)

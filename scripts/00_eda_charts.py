@@ -122,7 +122,7 @@ print('→ eda_correlation.png')
 # ============================================================
 fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
-cluster_names = {0:'저주행 일반', 1:'일반 승용', 2:'영업용/업무용', 3:'장기 미사용'}
+cluster_names = {0:'저주행군', 1:'중간주행군', 2:'고주행군', 3:'초저주행군'}
 cluster_colors = {0:'#3498db', 1:'#2ecc71', 2:'#e74c3c', 3:'#95a5a6'}
 
 # 4-1: Cluster별 Target 분포
