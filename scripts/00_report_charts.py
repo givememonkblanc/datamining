@@ -157,7 +157,7 @@ ax.fill_between(lims, [l-30 for l in lims], [l+30 for l in lims], alpha=0.08, co
 
 ax.set_xlabel('실제 방문 간격 (일)', fontsize=12)
 ax.set_ylabel('예측 방문 간격 (일)', fontsize=12)
-ax.set_title(f'XGBoost 예측값 vs 실제값 (R²={r2_val:.3f}, RMSE={rmse_val:.1f}일)', fontsize=13, fontweight='bold')
+ax.set_title(f'Level 1 XGBoost 예측값 vs 실제값 (R²={r2_val:.3f}, RMSE={rmse_val:.1f}일)', fontsize=13, fontweight='bold')
 ax.set_xlim(0, 400)
 ax.set_ylim(0, 400)
 ax.legend(fontsize=9)
