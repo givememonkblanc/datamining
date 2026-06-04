@@ -60,39 +60,37 @@ plt.close()
 print('→ clustering_final.png')
 
 # ============================================================
-# Chart 2: Model Comparison (Feature Set별)
+# Chart 2: Feature Set별 성능 비교
 # ============================================================
-results = pd.read_csv('results/model_comparison.csv')
+fig, ax = plt.subplots(figsize=(9, 5.5))
 
-fig, ax = plt.subplots(figsize=(10, 6))
+feature_sets = ['[A] 기본 정보', '[B] +정비 패턴', '[C] +방문 이력']
+r2_scores = [0.471, 0.582, 0.753]
+colors = ['#3498db', '#2ecc71', '#e74c3c']
 
-pivot_r2 = results.pivot_table(index='Model', columns='Group', values='R2')
-groups = [c for c in pivot_r2.columns if str(c).startswith('Cluster') or c == 'Global']
-cluster_cols = [c for c in groups if str(c).startswith('Cluster')]
-global_label = 'Global'
+x = np.arange(len(feature_sets))
+bars = ax.bar(x, r2_scores, color=colors, alpha=0.85, edgecolor='white', linewidth=0.8)
 
-y_pos = np.arange(len(pivot_r2.index))
-height = 0.35
+for i, (bar, score) in enumerate(zip(bars, r2_scores)):
+    ax.text(bar.get_x() + bar.get_width()/2, score + 0.015, f'{score:.3f}',
+            ha='center', va='bottom', fontsize=11, fontweight='bold')
+    if i > 0:
+        diff = score - r2_scores[i-1]
+        ax.text(bar.get_x() + bar.get_width()/2, score/2, f'+{diff:.3f}',
+                ha='center', va='center', fontsize=10, color='white', fontweight='bold')
 
-# Global bars
-global_r2 = pivot_r2[global_label].values
-ax.barh(y_pos + height/2, global_r2, height, label='Global', color='#2c3e50', alpha=0.7, edgecolor='white')
+ax.plot(x, r2_scores, color='#2c3e50', linestyle='--', linewidth=1.5, alpha=0.6)
+ax.set_xticks(x)
+ax.set_xticklabels(feature_sets, fontsize=10)
+ax.set_ylabel('R²', fontsize=12)
+ax.set_title('Feature Set별 XGBoost 성능 비교', fontsize=14, fontweight='bold')
+ax.set_ylim(0, 0.85)
+ax.grid(True, alpha=0.3, axis='y')
 
-# Average of clusters
-cluster_avg = pivot_r2[cluster_cols].mean(axis=1).values
-ax.barh(y_pos - height/2, cluster_avg, height, label='Cluster 평균', color='#e74c3c', alpha=0.7, edgecolor='white')
-
-# Add values
-for i, (g_val, c_val) in enumerate(zip(global_r2, cluster_avg)):
-    ax.text(max(g_val, c_val) + 0.01, y_pos[i], f'{max(g_val,c_val):.3f}', fontsize=8, va='center')
-
-ax.set_yticks(y_pos)
-ax.set_yticklabels(pivot_r2.index, fontsize=10)
-ax.set_xlabel('R²', fontsize=12)
-ax.set_title('Feature Set별 모델 성능 비교 (R²)', fontsize=14, fontweight='bold')
-ax.legend(fontsize=10, loc='lower right')
-ax.grid(True, alpha=0.3, axis='x')
-ax.set_xlim(0, 0.5)
+note_text = 'A → B: 정비 패턴 추가\nB → C: 방문 이력 추가'
+ax.text(0.98, 0.04, note_text, transform=ax.transAxes,
+        ha='right', va='bottom', fontsize=9,
+        bbox=dict(boxstyle='round,pad=0.4', facecolor='#f8f9fa', alpha=0.9, edgecolor='#d0d0d0'))
 
 plt.tight_layout()
 plt.savefig('/home/ryzen395/datamining/model_comparison.png', dpi=150, bbox_inches='tight')
