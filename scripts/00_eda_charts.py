@@ -122,7 +122,7 @@ print('→ eda_correlation.png')
 # ============================================================
 fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
-cluster_names = {0:'저주행군', 1:'중간주행군', 2:'고주행군', 3:'초저주행군'}
+cluster_names = {c: f'행태군 {chr(65 + c)}' for c in sorted(df['cluster'].unique())}
 cluster_colors = {0:'#3498db', 1:'#2ecc71', 2:'#e74c3c', 3:'#95a5a6'}
 
 # 4-1: Cluster별 Target 분포
@@ -137,16 +137,15 @@ ax.set_title('Cluster별 방문간격 분포')
 ax.legend(fontsize=7)
 ax.grid(True, alpha=0.2, axis='y')
 
-# 4-2: 주행거리 vs 방문간격
+# 4-2: 주행거리 vs 방문빈도
 ax = axes[1]
 for c in sorted(df['cluster'].unique()):
     sub = df[df['cluster']==c].sample(min(3000, len(df[df['cluster']==c])), random_state=42)
-    ax.scatter(sub['log_drivingKm'], sub['days_until_next'], s=1, alpha=0.3, color=cluster_colors[c], label=f'{c}')
+    ax.scatter(sub['log_drivingKm'], sub['visit_freq_per_year'], s=1, alpha=0.3, color=cluster_colors[c], label=f'{c}')
 ax.set_xlabel('로그 주행거리')
-ax.set_ylabel('방문 간격 (일)')
-ax.set_title('주행거리 vs 방문간격 (Cluster별)')
+ax.set_ylabel('연간 방문빈도')
+ax.set_title('로그 주행거리 vs 연간 방문빈도')
 ax.legend(fontsize=8, title='Cluster')
-ax.set_ylim(0, 400)
 ax.grid(True, alpha=0.2)
 
 # 4-3: Cluster별 요약 테이블
@@ -154,9 +153,10 @@ ax = axes[2]
 ax.axis('off')
 summary = df.groupby('cluster').agg(
     차량수=('carNo','nunique'),
-    평균주행거리=('drivingKm','mean'),
+    일평균주행=('DayAvgDrivingKm','mean'),
     평균방문간격=('days_until_next','mean'),
-    방문빈도=('visit_freq_per_year','mean')
+    방문빈도=('visit_freq_per_year','mean'),
+    서비스다양성=('service_diversity','mean')
 ).round(1)
 
 table_text = 'Cluster별 요약\n'
@@ -165,9 +165,10 @@ for c in sorted(summary.index):
     row = summary.loc[c]
     table_text += f'{c} ({cluster_names[c]:6s})\n'
     table_text += f'  차량수: {int(row["차량수"]):>5d}대\n'
-    table_text += f'  주행거리: {row["평균주행거리"]:>8.0f}km\n'
+    table_text += f'  일평균주행:{row["일평균주행"]:>8.1f}km\n'
     table_text += f'  방문간격: {row["평균방문간격"]:>7.1f}일\n'
     table_text += f'  방문빈도: {row["방문빈도"]:>7.1f}회/년\n'
+    table_text += f'  다양성:   {row["서비스다양성"]:>7.1f}\n'
     table_text += f'  ──────────────────────\n'
 
 ax.text(0.05, 0.95, table_text, transform=ax.transAxes, fontsize=8.5,
@@ -191,6 +192,7 @@ df['visit_bin'] = pd.cut(df['visit_count'], bins=visit_bins, labels=labels_bin)
 
 stats = df.groupby('visit_bin', observed=True)['days_until_next'].agg(['mean','median','std'])
 stats['count'] = df.groupby('visit_bin', observed=True).size()
+stats = stats.reindex(labels_bin)
 
 # 막대 + 에러바
 x = np.arange(len(labels_bin))
