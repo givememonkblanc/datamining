@@ -263,7 +263,7 @@ try:
     car_profiles = car_profiles[car_profiles['carNo'].isin(eligible_cars)].copy()
     
     car_profile_texts = []
-    cluster_names = {0: '저주행군', 1: '중간주행군', 2: '고주행군', 3: '초저주행군'}
+    cluster_names = {0: '행태군 A', 1: '행태군 B', 2: '행태군 C', 3: '행태군 D'}
     for _, row in car_profiles.iterrows():
         cluster_name = cluster_names.get(row['cluster'], '알수없음')
         
