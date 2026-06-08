@@ -10,32 +10,50 @@ warnings.filterwarnings('ignore')
 df = pd.read_pickle('/tmp/df_final.pkl')
 
 # ============================================================
-# Chart 1: K-Means 클러스터링 결과
+# Chart 1: K-Means 클러스터링 전/후 비교
 # ============================================================
-fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
+fig, axes = plt.subplots(1, 3, figsize=(19, 5.5))
 
 colors = {0:'#3498db', 1:'#2ecc71', 2:'#e74c3c', 3:'#95a5a6'}
-cluster_names = {0:'저주행군', 1:'중간주행군', 2:'고주행군', 3:'초저주행군'}
+cluster_names = {c: f'행태군 {chr(65 + c)}' for c in sorted(df['cluster'].unique())}
 
-for c in sorted(df['cluster'].unique()):
-    sub = df[df['cluster']==c].sample(min(3000, sum(df['cluster']==c)), random_state=42)
-    axes[0].scatter(sub['log_drivingKm'], sub['log_DayAvgDrivingKm'],
-                    s=3, alpha=0.4, color=colors[c], label=f'{c}')
+# Before/after clustering: use identical sample and axis ranges
+plot_df = df.sample(min(12000, len(df)), random_state=42).copy()
+x_min, x_max = plot_df['log_drivingKm'].min(), plot_df['log_drivingKm'].max()
+y_min, y_max = plot_df['visit_freq_per_year'].min(), plot_df['visit_freq_per_year'].max()
 
+axes[0].scatter(plot_df['log_drivingKm'], plot_df['visit_freq_per_year'],
+                s=3, alpha=0.28, color='#7f8c8d')
 axes[0].set_xlabel('로그 주행거리')
-axes[0].set_ylabel('로그 일평균 주행거리')
-axes[0].set_title('K-Means 클러스터링 (k=4)', fontsize=13, fontweight='bold')
-axes[0].legend(title='Cluster', fontsize=9)
+axes[0].set_ylabel('연간 방문빈도')
+axes[0].set_title('클러스터링 전 분포', fontsize=13, fontweight='bold')
+axes[0].set_xlim(x_min, x_max)
+axes[0].set_ylim(y_min, y_max)
 axes[0].grid(True, alpha=0.2)
 
+# After clustering: colored by cluster in original feature space
+for c in sorted(df['cluster'].unique()):
+    sub = plot_df[plot_df['cluster'] == c]
+    axes[1].scatter(sub['log_drivingKm'], sub['visit_freq_per_year'],
+                    s=3, alpha=0.4, color=colors[c], label=cluster_names[c])
+
+axes[1].set_xlabel('로그 주행거리')
+axes[1].set_ylabel('연간 방문빈도')
+axes[1].set_title('K-Means 클러스터링 결과 (k=4)', fontsize=13, fontweight='bold')
+axes[1].set_xlim(x_min, x_max)
+axes[1].set_ylim(y_min, y_max)
+axes[1].legend(title='Cluster', fontsize=9)
+axes[1].grid(True, alpha=0.2)
+
 # Cluster summary table
-axes[1].axis('off')
+axes[2].axis('off')
 summary = df.groupby('cluster').agg(
     차량수=('carNo','nunique'),
-    주행거리_평균=('drivingKm','mean'),
+    평균주행거리=('drivingKm','mean'),
     일평균주행=('DayAvgDrivingKm','mean'),
-    연식_평균=('vehicle_age','mean'),
-    방문간격=('days_until_next','mean')
+    방문빈도=('visit_freq_per_year','mean'),
+    최근평균간격=('gap_ma','mean'),
+    서비스다양성=('service_diversity','mean')
 ).round(1)
 
 table_lines = ['Cluster별 특성 요약\n', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n']
@@ -43,16 +61,17 @@ for c in sorted(summary.index):
     row = summary.loc[c]
     table_lines.append(f'Cluster {c} ({cluster_names[c]})\n')
     table_lines.append(f'  차량수:     {int(row["차량수"]):>5d}대\n')
-    table_lines.append(f'  평균 주행:   {row["주행거리_평균"]:>7.0f}km\n')
+    table_lines.append(f'  평균 주행:   {row["평균주행거리"]:>7.0f}km\n')
     table_lines.append(f'  일평균 주행: {row["일평균주행"]:>6.1f}km\n')
-    table_lines.append(f'  평균 연식:   {row["연식_평균"]:>5.1f}년\n')
-    table_lines.append(f'  방문간격:    {row["방문간격"]:>6.1f}일\n')
+    table_lines.append(f'  방문빈도:    {row["방문빈도"]:>6.1f}회/년\n')
+    table_lines.append(f'  최근 평균간격:{row["최근평균간격"]:>6.1f}일\n')
+    table_lines.append(f'  서비스 다양성:{row["서비스다양성"]:>6.1f}\n')
     table_lines.append('  ─────────────────────────\n')
 
-axes[1].text(0.05, 0.95, ''.join(table_lines), transform=axes[1].transAxes,
+axes[2].text(0.05, 0.95, ''.join(table_lines), transform=axes[2].transAxes,
              fontsize=9, verticalalignment='top',
              bbox=dict(boxstyle='round,pad=0.5', facecolor='#f5f5f5', alpha=0.9))
-axes[1].set_title('Cluster별 특성 요약', fontsize=13, fontweight='bold')
+axes[2].set_title('Cluster별 특성 요약', fontsize=13, fontweight='bold')
 
 plt.tight_layout()
 plt.savefig('/home/ryzen395/datamining/clustering_final.png', dpi=150, bbox_inches='tight')
