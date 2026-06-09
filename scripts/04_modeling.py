@@ -20,6 +20,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 df = pd.read_pickle('data/final.pkl')
+df = df[(df['days_until_next'] <= 365) & (df['visit_count'] > 1)].copy()
 
 feature_cols = [
     'prev_gap', 'gap_avg', 'gap_std', 'gap_ma',
