@@ -119,8 +119,10 @@ print('→ model_comparison.png')
 # ============================================================
 # Chart 3: Predicted vs Actual
 # ============================================================
-import xgboost as xgb
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
+
+level1_df = df[(df['days_until_next'] <= 365) & (df['visit_count'] > 1)].copy()
 
 feature_cols = [
     'prev_gap', 'gap_avg', 'gap_std', 'gap_ma',
@@ -135,7 +137,7 @@ feature_cols = [
     'oil_ratio', 'brake_ratio', 'tire_ratio', 'source_enc'
 ]
 
-X = df[feature_cols].copy()
+X = level1_df[feature_cols].copy()
 for c in X.columns:
     if X[c].dtype in ['float64', 'int64']:
         X[c] = X[c].fillna(X[c].median())
@@ -143,11 +145,11 @@ X = X.replace([np.inf, -np.inf], np.nan)
 for c in X.columns:
     if X[c].dtype in ['float64', 'int64']:
         X[c] = X[c].fillna(X[c].median())
-y = df['days_until_next'].values
+y = level1_df['days_until_next'].values
 
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = xgb.XGBRegressor(n_estimators=200, max_depth=6, random_state=42, n_jobs=-1)
+model = GradientBoostingRegressor(n_estimators=200, max_depth=4, random_state=42)
 model.fit(X_tr, y_tr)
 y_pred = model.predict(X_te)
 
@@ -174,9 +176,9 @@ ax.fill_between(lims, [l-30 for l in lims], [l+30 for l in lims], alpha=0.08, co
 
 ax.set_xlabel('실제 방문 간격 (일)', fontsize=12)
 ax.set_ylabel('예측 방문 간격 (일)', fontsize=12)
-ax.set_title(f'Level 1 XGBoost 예측값 vs 실제값 (R²={r2_val:.3f}, RMSE={rmse_val:.1f}일)', fontsize=13, fontweight='bold')
-ax.set_xlim(0, 400)
-ax.set_ylim(0, 400)
+ax.set_title('Level 1 Gradient Boosting 예측값 vs 실제값', fontsize=13, fontweight='bold')
+ax.set_xlim(0, 365)
+ax.set_ylim(0, 365)
 ax.legend(fontsize=9)
 ax.grid(True, alpha=0.2)
 
@@ -184,7 +186,7 @@ plt.colorbar(sc, ax=ax, label='밀도')
 plt.tight_layout()
 plt.savefig('/home/ryzen395/datamining/pred_vs_actual.png', dpi=150, bbox_inches='tight')
 plt.close()
-print(f'→ pred_vs_actual.png (R²={r2_val:.3f}, RMSE={rmse_val:.1f})')
+print(f'→ pred_vs_actual.png [Gradient Boosting] (n={len(level1_df)}, R²={r2_val:.3f}, RMSE={rmse_val:.1f})')
 
 # ============================================================
 # Chart 4: Feature Importance
