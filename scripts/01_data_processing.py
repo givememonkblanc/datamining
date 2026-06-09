@@ -9,11 +9,11 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
-# 데이터 로드 (※ carNo, chassisNo는 가명처리된 상태)
-src_a = pd.read_csv('data/DB적재_A.csv', encoding='cp949')
-src_b = pd.read_csv('data/DB적재_B.csv', encoding='cp949')
-src_a['source'] = 'A'
-src_b['source'] = 'B'
+# 데이터 로드
+src_a = pd.read_csv('data/DB적재_KBEAD.csv', encoding='cp949')
+src_b = pd.read_csv('data/DB적재_NICE.csv', encoding='cp949')
+src_a['source'] = 'KBEAD'
+src_b['source'] = 'NICE'
 
 df = pd.concat([src_a, src_b], ignore_index=True)
 df = df.dropna(subset=['carNo'])

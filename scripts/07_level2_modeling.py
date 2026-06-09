@@ -19,19 +19,8 @@ import xgboost as xgb
 
 df = pd.read_pickle('/tmp/df_final.pkl')
 
-# carNo가 NaN이므로 visit_count reset 패턴으로 차량 ID 복원
-visit_seq = df['visit_count'].values
-car_ids = np.zeros(len(df), dtype=int)
-current_id = 0
-car_ids[0] = current_id
-for i in range(1, len(visit_seq)):
-    if visit_seq[i] <= visit_seq[i-1]:
-        current_id += 1
-    car_ids[i] = current_id
-df['car_id'] = car_ids
-
 # 차량 단위 집계 (Level 2, Feature Set [C])
-car_features = df.groupby('car_id').agg(
+car_features = df.groupby('carNo').agg(
     drivingKm=('drivingKm','mean'),
     log_drivingKm=('log_drivingKm','mean'),
     DayAvgDrivingKm=('DayAvgDrivingKm','mean'),
@@ -59,9 +48,9 @@ car_features = df.groupby('car_id').agg(
 ).reset_index()
 
 # 3회↑ 방문 차량만
-car_visit_counts = df.groupby('car_id').size().reset_index(name='n_visits')
-eligible = car_visit_counts[car_visit_counts['n_visits'] >= 3]['car_id']
-car_features = car_features[car_features['car_id'].isin(eligible)].copy()
+car_visit_counts = df.groupby('carNo').size().reset_index(name='n_visits')
+eligible = car_visit_counts[car_visit_counts['n_visits'] >= 3]['carNo']
+car_features = car_features[car_features['carNo'].isin(eligible)].copy()
 
 print(f"Level 2 대상 차량: {len(car_features):,}대 (3회↑ 방문)")
 
